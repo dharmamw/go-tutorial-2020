@@ -2,9 +2,9 @@ package skeleton
 
 import (
 	"context"
+	"fmt"
 	userEntity "go-tutorial-2020/internal/entity/user"
 	"go-tutorial-2020/pkg/errors"
-	"strconv"
 )
 
 // UserData ...
@@ -36,7 +36,7 @@ func New(userData UserData) Service {
 func (s Service) InsertUsers(ctx context.Context, user userEntity.User) error {
 	// Panggil method GetAllUsers di data layer user
 	nipMax, err := s.userData.InsertNipUp(ctx)
-	user.NIP = "P" + strconv.Itoa(nipMax)
+	user.NIP = "P" + fmt.Sprintf("%06d", nipMax)
 	err = s.userData.InsertUsers(ctx, user)
 	// Error handling
 	if err != nil {
@@ -97,20 +97,20 @@ func (s Service) DeleteUserByNIP(ctx context.Context, NIP string, user userEntit
 // GetUserFromFireBase ...
 func (s Service) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error) {
 	var user []userEntity.User
-//	user, err := s.GetUserFromFireBase(ctx)
+	//	user, err := s.GetUserFromFireBase(ctx)
 
 	user, err := s.userData.GetUserFromFireBase(ctx)
 	return user, err
 }
 
 //InsertUsersToFirebase ...
-func (s Service) InsertUsersToFirebase(ctx context.Context, user userEntity.User) error{
+func (s Service) InsertUsersToFirebase(ctx context.Context, user userEntity.User) error {
 	err := s.userData.InsertUsersToFirebase(ctx, user)
 	return err
 }
 
 //InsertMany ...
-func (s Service) InsertMany(ctx context.Context, userList []userEntity.User) error{
+func (s Service) InsertMany(ctx context.Context, userList []userEntity.User) error {
 	err := s.userData.InsertMany(ctx, userList)
 	return err
 }
