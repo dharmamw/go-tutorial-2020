@@ -5,16 +5,20 @@ import (
 	"log"
 
 	"go-tutorial-2020/pkg/errors"
+	firebaseclient "go-tutorial-2020/pkg/firebaseClient"
 
 	userEntity "go-tutorial-2020/internal/entity/user"
 
+	"cloud.google.com/go/firestore"
 	"github.com/jmoiron/sqlx"
+	"google.golang.org/api/iterator"
 )
 
 type (
 	// Data ...
 	Data struct {
 		db   *sqlx.DB
+		fb   *firestore.Client
 		stmt map[string]*sqlx.Stmt
 	}
 
@@ -57,9 +61,10 @@ var (
 )
 
 // New ...
-func New(db *sqlx.DB) Data {
+func New(db *sqlx.DB, fb *firebaseclient.Client) Data {
 	d := Data{
 		db: db,
+		fb: fb.Client,
 	}
 
 	d.initStmt()
@@ -80,6 +85,28 @@ func (d *Data) initStmt() {
 	}
 
 	d.stmt = stmts
+}
+
+//GetUserFromFireBase ...
+func (d Data) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error) {
+	var (
+		userFirebase []userEntity.User
+		err          error
+	)
+	// test := d.fb.Collection("user_test")
+	iter := d.fb.Collection("user_test").Documents(ctx)
+	for {
+		var user userEntity.User
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		log.Println(doc)
+		err = doc.DataTo(&user)
+		log.Println(user)
+		userFirebase = append(userFirebase, user)
+	}
+	return userFirebase, err
 }
 
 // GetAllUsers digunakan untuk mengambil semua data user

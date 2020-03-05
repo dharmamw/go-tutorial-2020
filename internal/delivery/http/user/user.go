@@ -20,6 +20,7 @@ type IUserSvc interface {
 	GetUserByNIP(ctx context.Context, NIP string) (userEntity.User, error)
 	UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
+	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 }
 
 type (
@@ -62,7 +63,11 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 			result, err = h.userSvc.GetUserByNIP(context.Background(), r.FormValue("NIP"))
 		} else {
 			// Ambil semua data user
+			if _, fireOK := r.URL.Query()["firebasedb"]; fireOK {
+				result, err = h.userSvc.GetUserFromFireBase(context.Background())
+			}
 			result, err = h.userSvc.GetAllUsers(context.Background())
+
 		}
 
 	case http.MethodPost:

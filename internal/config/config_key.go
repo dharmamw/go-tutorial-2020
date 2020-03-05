@@ -5,6 +5,7 @@ type (
 	Config struct {
 		Server   ServerConfig   `yaml:"server"`
 		Database DatabaseConfig `yaml:"database"`
+		Firebase FirebaseConfig `yaml:"firebase"`
 	}
 
 	// ServerConfig ...
@@ -15,5 +16,10 @@ type (
 	// DatabaseConfig ...
 	DatabaseConfig struct {
 		Master string `yaml:"master"`
+	}
+
+	// FirebaseConfig ...
+	FirebaseConfig struct {
+		ProjectID string `yaml:"ProjectID"`
 	}
 )

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go-tutorial-2020/internal/config"
+	firebaseclient "go-tutorial-2020/pkg/firebaseClient"
 
 	"github.com/jmoiron/sqlx"
 
@@ -22,6 +23,7 @@ func HTTP() error {
 		us  userService.Service  // User domain service layer
 		uh  *userHandler.Handler // User domain handler
 		cfg *config.Config       // Configuration object
+		fb  *firebaseclient.Client
 	)
 
 	// Get configuration
@@ -37,8 +39,13 @@ func HTTP() error {
 		log.Fatalf("[DB] Failed to initialize database connection: %v", err)
 	}
 
+	fb, err = firebaseclient.NewClient(cfg)
+	if err != nil {
+		log.Fatalf("[DB] Failed to initialize database connection: %v", err)
+	}
+
 	// User domain initialization
-	ud = userData.New(db)
+	ud = userData.New(db, fb)
 	us = userService.New(ud)
 	uh = userHandler.New(us)
 

@@ -15,6 +15,7 @@ type UserData interface {
 	UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	InsertNipUp(ctx context.Context) (int, error)
+	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 }
 
 // Service ...
@@ -32,7 +33,7 @@ func New(userData UserData) Service {
 //InsertUsers ...
 func (s Service) InsertUsers(ctx context.Context, user userEntity.User) error {
 	// Panggil method GetAllUsers di data layer user
-	nipMax,err := s.userData.InsertNipUp(ctx)
+	nipMax, err := s.userData.InsertNipUp(ctx)
 	user.NIP = "P" + strconv.Itoa(nipMax)
 	err = s.userData.InsertUsers(ctx, user)
 	// Error handling
@@ -91,3 +92,11 @@ func (s Service) DeleteUserByNIP(ctx context.Context, NIP string, user userEntit
 	return user, err
 }
 
+// GetUserFromFireBase ...
+func (s Service) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error) {
+	var user []userEntity.User
+//	user, err := s.GetUserFromFireBase(ctx)
+
+	user, err := s.userData.GetUserFromFireBase(ctx)
+	return user, err
+}
