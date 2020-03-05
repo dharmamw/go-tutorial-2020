@@ -16,6 +16,8 @@ type UserData interface {
 	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	InsertNipUp(ctx context.Context) (int, error)
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
+	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
+	InsertMany(ctx context.Context, userList []userEntity.User) error
 }
 
 // Service ...
@@ -99,4 +101,16 @@ func (s Service) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, er
 
 	user, err := s.userData.GetUserFromFireBase(ctx)
 	return user, err
+}
+
+//InsertUsersToFirebase ...
+func (s Service) InsertUsersToFirebase(ctx context.Context, user userEntity.User) error{
+	err := s.userData.InsertUsersToFirebase(ctx, user)
+	return err
+}
+
+//InsertMany ...
+func (s Service) InsertMany(ctx context.Context, userList []userEntity.User) error{
+	err := s.userData.InsertMany(ctx, userList)
+	return err
 }

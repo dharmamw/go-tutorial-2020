@@ -47,6 +47,7 @@ const (
 
 	insertNipUp  = "InsertNipUp"
 	qInsertNipUp = "SELECT MAX(CAST(RIGHT(nip,6)AS INT))+1 FROM user_test"
+
 )
 
 var (
@@ -94,7 +95,7 @@ func (d Data) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error
 		err          error
 	)
 	// test := d.fb.Collection("user_test")
-	iter := d.fb.Collection("user_test").Documents(ctx)
+	iter := d.fb.Collection("user_test").Where("ID","==", 2).Documents(ctx)
 	for {
 		var user userEntity.User
 		doc, err := iter.Next()
@@ -148,6 +149,23 @@ func (d Data) InsertUsers(ctx context.Context, user userEntity.User) error {
 
 }
 
+//InsertUsersToFirebase ...
+func (d Data) InsertUsersToFirebase(ctx context.Context, user userEntity.User) error{
+	_, err := d.fb.Collection("user_test").Doc(user.NIP).Set(ctx, user)
+
+	return err
+}
+
+//InsertMany ...
+func (d Data) InsertMany(ctx context.Context, userList []userEntity.User) error{
+	var (	
+		err  error
+	)
+	for _,i := range userList{
+		_, err = d.fb.Collection("user_test").Doc(i.NIP).Set(ctx, i)
+	}
+	return err
+}
 //user di if dipakai di var, jadi jangan bingung!
 
 //GetUserByNIP ...
@@ -174,8 +192,8 @@ func (d Data) UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.U
 		NIP)
 
 	return user, err
-
 }
+
 
 // DeleteUserByNIP ...
 func (d Data) DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error) {
@@ -193,3 +211,4 @@ func (d Data) InsertNipUp(ctx context.Context) (int, error) {
 	err := d.stmt[insertNipUp].QueryRowxContext(ctx).Scan(&nipMax)
 	return nipMax, err
 }
+

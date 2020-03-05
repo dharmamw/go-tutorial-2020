@@ -21,6 +21,8 @@ type IUserSvc interface {
 	UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
+	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
+	InsertMany(ctx context.Context, userList []userEntity.User) error
 }
 
 type (
@@ -65,14 +67,34 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 			// Ambil semua data user
 			if _, fireOK := r.URL.Query()["firebasedb"]; fireOK {
 				result, err = h.userSvc.GetUserFromFireBase(context.Background())
+			} else {
+				result, err = h.userSvc.GetAllUsers(context.Background())
 			}
-			result, err = h.userSvc.GetAllUsers(context.Background())
-
 		}
 
 	case http.MethodPost:
-		json.Unmarshal(body, &user)
-		err = h.userSvc.InsertUsers(context.Background(), user)
+		
+		var (
+			_type string
+			userList []userEntity.User
+		)
+		if _, fireOk := r.URL.Query()["Insert"]; fireOk {
+			_type = r.FormValue("Insert")
+		}
+		switch _type {
+		case "firebase":
+			json.Unmarshal(body, &user)
+			err = h.userSvc.InsertUsersToFirebase(context.Background(), user)
+		case "sql" :
+			json.Unmarshal(body, &user)
+			err = h.userSvc.InsertUsers(context.Background(), user)
+		case "Many":
+			json.Unmarshal(body, &userList)
+			err = h.userSvc.InsertMany(context.Background(),userList)
+		}
+
+
+
 
 	case http.MethodPut:
 		_, nipOK := r.URL.Query()["NIP"]
