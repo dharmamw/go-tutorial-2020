@@ -19,6 +19,7 @@ type UserData interface {
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
+	UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User)  error
 }
 
 // Service ...
@@ -118,10 +119,17 @@ func (s Service) InsertMany(ctx context.Context, userList []userEntity.User) err
 	return err
 }
 
+//PublishUser ...
 func (s Service) PublishUser(user userEntity.User) error {
 	err := s.kafka.SendMessageJSON("New_User", user)
 	if err != nil {
 		return errors.Wrap(err, "[SERVICE][publishRO]")
 	}
+	return err
+}
+
+//UpdateByNipFirebase ...
+func (s Service) UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User)  error{
+	err := s.userData.UpdateByNipFirebase(ctx,nip,user)
 	return err
 }

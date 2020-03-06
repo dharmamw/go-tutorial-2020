@@ -99,8 +99,11 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			if err != nil {
 				log.Fatalf(err.Error())
 			}
+
+			session.MarkMessage(message, "")
 		}
 		session.MarkMessage(message, "")
+
 	}
 
 	return nil

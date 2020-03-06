@@ -24,6 +24,7 @@ type IUserSvc interface {
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
 	PublishUser(user userEntity.User) error
+	UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User) error
 }
 
 type (
@@ -98,14 +99,11 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case http.MethodPut:
-		_, nipOK := r.URL.Query()["NIP"]
-		if nipOK {
-			result, err = h.userSvc.GetUserByNIP(context.Background(), r.FormValue("NIP"))
-		}
 		json.Unmarshal(body, &user)
 		_, updateOK := r.URL.Query()["NIP"]
 		if updateOK {
-			result, err = h.userSvc.UpdateUserByNIP(context.Background(), r.FormValue("NIP"), user)
+			err = h.userSvc.UpdateByNipFirebase(context.Background(),  r.FormValue("NIP"), user)
+			//result, err = h.userSvc.UpdateUserByNIP(context.Background(), r.FormValue("NIP"), user)
 		}
 	case http.MethodDelete:
 

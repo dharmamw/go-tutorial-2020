@@ -94,7 +94,7 @@ func (d Data) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error
 		err          error
 	)
 	// test := d.fb.Collection("user_test")
-	iter := d.fb.Collection("user_test").Where("ID", "==", 2).Documents(ctx)
+	iter := d.fb.Collection("user_test").Documents(ctx)
 	for {
 		var user userEntity.User
 		doc, err := iter.Next()
@@ -209,4 +209,15 @@ func (d Data) InsertNipUp(ctx context.Context) (int, error) {
 	var nipMax int
 	err := d.stmt[insertNipUp].QueryRowxContext(ctx).Scan(&nipMax)
 	return nipMax, err
+}
+
+//UpdateByNipFirebase ...
+func (d Data) UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User) error {
+	iter,err := d.fb.Collection("user_test").Doc(nip).Get(ctx)
+	userValidate := iter.Data()
+	if userValidate == nil {
+		return errors.Wrap(err, "Data Not Exist")
+	}
+	_, err = d.fb.Collection("user_test").Doc(nip).Set(ctx, user)
+	return err
 }
