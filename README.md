@@ -4,3 +4,5 @@ Step membuka folder setelah di clone -> rename folder sebelum dibuka ke visual s
 
 ==PENTING==
 Dimohon contributors tidak meng-commit file langsung ke master. apabila ingin meng-commit, silahkan buat branch sendiri di dalam repository.
+
+?word berarti pernyataan yang tidak diyakini kebenarannya secara penuh.
