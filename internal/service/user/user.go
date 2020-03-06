@@ -5,6 +5,7 @@ import (
 	"fmt"
 	userEntity "go-tutorial-2020/internal/entity/user"
 	"go-tutorial-2020/pkg/errors"
+	"go-tutorial-2020/pkg/kafka"
 )
 
 // UserData ...
@@ -23,12 +24,14 @@ type UserData interface {
 // Service ...
 type Service struct {
 	userData UserData
+	kafka    *kafka.Kafka
 }
 
 // New ...
-func New(userData UserData) Service {
+func New(userData UserData, kafka *kafka.Kafka) Service {
 	return Service{
 		userData: userData,
+		kafka:    kafka,
 	}
 }
 
@@ -112,5 +115,13 @@ func (s Service) InsertUsersToFirebase(ctx context.Context, user userEntity.User
 //InsertMany ...
 func (s Service) InsertMany(ctx context.Context, userList []userEntity.User) error {
 	err := s.userData.InsertMany(ctx, userList)
+	return err
+}
+
+func (s Service) PublishUser(user userEntity.User) error {
+	err := s.kafka.SendMessageJSON("New_User", user)
+	if err != nil {
+		return errors.Wrap(err, "[SERVICE][publishRO]")
+	}
 	return err
 }

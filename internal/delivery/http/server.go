@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/rs/cors"
 	"github.com/vilbert/go-skeleton/pkg/grace"
 )
 
@@ -19,5 +20,6 @@ type Server struct {
 
 // Serve is serving HTTP gracefully on port x ...
 func (s *Server) Serve(port string) error {
-	return grace.Serve(port, s.Handler())
+	handler := cors.AllowAll().Handler(s.Handler())
+	return grace.Serve(port, handler)
 }

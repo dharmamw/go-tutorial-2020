@@ -23,6 +23,7 @@ type IUserSvc interface {
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
+	PublishUser(user userEntity.User) error
 }
 
 type (
@@ -73,9 +74,9 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case http.MethodPost:
-		
+
 		var (
-			_type string
+			_type    string
 			userList []userEntity.User
 		)
 		if _, fireOk := r.URL.Query()["Insert"]; fireOk {
@@ -85,16 +86,16 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		case "firebase":
 			json.Unmarshal(body, &user)
 			err = h.userSvc.InsertUsersToFirebase(context.Background(), user)
-		case "sql" :
+		case "sql":
 			json.Unmarshal(body, &user)
 			err = h.userSvc.InsertUsers(context.Background(), user)
-		case "Many":
+		case "many":
 			json.Unmarshal(body, &userList)
-			err = h.userSvc.InsertMany(context.Background(),userList)
+			err = h.userSvc.InsertMany(context.Background(), userList)
+		case "kafka":
+			json.Unmarshal(body, &user)
+			err = h.userSvc.PublishUser(user)
 		}
-
-
-
 
 	case http.MethodPut:
 		_, nipOK := r.URL.Query()["NIP"]
