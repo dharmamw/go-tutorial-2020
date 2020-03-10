@@ -6,6 +6,7 @@ import (
 	userEntity "go-tutorial-2020/internal/entity/user"
 	"go-tutorial-2020/pkg/errors"
 	"go-tutorial-2020/pkg/kafka"
+	"net/http"
 )
 
 // UserData ...
@@ -19,6 +20,7 @@ type UserData interface {
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
+	GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEntity.User, error)
 }
 
 // Service ...
@@ -40,6 +42,19 @@ func (s Service) InsertUsers(ctx context.Context, user userEntity.User) error {
 	// Panggil method GetAllUsers di data layer user
 	nipMax, err := s.userData.InsertNipUp(ctx)
 	user.NIP = "P" + fmt.Sprintf("%06d", nipMax)
+	err = s.userData.InsertUsers(ctx, user)
+	// Error handling
+	if err != nil {
+		return errors.Wrap(err, "[SERVICE][GetAllUsers]")
+	}
+	// Return users array
+	return err
+}
+func (s Service) InsertUsersSqlFirebase(ctx context.Context, user userEntity.User) error {
+	// Panggil method GetAllUsers di data layer user
+	nipMax, err := s.userData.InsertNipUp(ctx)
+	user.NIP = "P" + fmt.Sprintf("%06d", nipMax)
+	err = s.userData.InsertUsersToFirebase(ctx, user)
 	err = s.userData.InsertUsers(ctx, user)
 	// Error handling
 	if err != nil {
@@ -124,4 +139,9 @@ func (s Service) PublishUser(user userEntity.User) error {
 		return errors.Wrap(err, "[SERVICE][publishRO]")
 	}
 	return err
+}
+
+func (s Service) GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEntity.User, error) {
+	userList, err := s.userData.GetAllUsersAPI(ctx, header)
+	return userList, err
 }

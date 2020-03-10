@@ -24,6 +24,8 @@ type IUserSvc interface {
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
 	PublishUser(user userEntity.User) error
+	InsertUsersSqlFirebase(ctx context.Context, user userEntity.User) error
+	GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEntity.User, error)
 }
 
 type (
@@ -60,19 +62,29 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if request method is GET
 	case http.MethodGet:
 		// Cek query di URL
-		_, nipOK := r.URL.Query()["NIP"]
-		if nipOK {
-			// Ambil user by NIP
-			result, err = h.userSvc.GetUserByNIP(context.Background(), r.FormValue("NIP"))
-		} else {
-			// Ambil semua data user
-			if _, fireOK := r.URL.Query()["firebasedb"]; fireOK {
-				result, err = h.userSvc.GetUserFromFireBase(context.Background())
-			} else {
-				result, err = h.userSvc.GetAllUsers(context.Background())
-			}
+		
+		var _type string
+
+		if _, nipOK := r.URL.Query()["Get"] ; nipOK {
+			_type = r.FormValue("Get")
 		}
 
+		switch _type{
+			case "sqlNIP":
+				json.Unmarshal(body, &user)
+				result, err = h.userSvc.GetUserByNIP(context.Background(), r.FormValue("NIP"))
+			case "fireall":
+				json.Unmarshal(body, &user)
+				result, err = h.userSvc.GetUserFromFireBase(context.Background())
+			case "API":
+				json.Unmarshal(body, &user)
+				result, err = h.userSvc.GetAllUsersAPI(context.Background(), w.Header())
+			case "sqlall":
+				json.Unmarshal(body, &user)
+				result, err = h.userSvc.GetAllUsers(context.Background())			
+		}
+
+		
 	case http.MethodPost:
 
 		var (
@@ -95,6 +107,9 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		case "kafka":
 			json.Unmarshal(body, &user)
 			err = h.userSvc.PublishUser(user)
+		case "Baru":
+			json.Unmarshal(body, &user)
+			err = h.userSvc.InsertUsersSqlFirebase(context.Background(), user)
 		}
 
 	case http.MethodPut:

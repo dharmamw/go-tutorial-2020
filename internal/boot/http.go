@@ -15,6 +15,8 @@ import (
 	userHandler "go-tutorial-2020/internal/delivery/http/user"
 	userService "go-tutorial-2020/internal/service/user"
 
+	"go-tutorial-2020/pkg/httpclient"
+
 	kConsumer "go-tutorial-2020/internal/delivery/kafka"
 )
 
@@ -28,6 +30,7 @@ func HTTP() error {
 		cfg *config.Config       // Configuration object
 		fb  *firebaseclient.Client
 		k   *kafka.Kafka         // Kafka Producer
+		httpc *httpclient.Client
 	)
 
 	// Get configuration
@@ -36,6 +39,8 @@ func HTTP() error {
 		log.Fatalf("[CONFIG] Failed to initialize config: %v", err)
 	}
 	cfg = config.Get()
+
+	httpc = httpclient.NewClient() 
 
 	// Open MySQL DB Connection
 	db, err := sqlx.Open("mysql", cfg.Database.Master)
@@ -54,7 +59,7 @@ func HTTP() error {
 	}
 
 	// User domain initialization
-	ud = userData.New(db, fb)
+	ud = userData.New(db, fb, httpc)
 	us = userService.New(ud, k)
 	uh = userHandler.New(us)
 

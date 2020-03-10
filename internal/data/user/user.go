@@ -3,9 +3,11 @@ package user
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"go-tutorial-2020/pkg/errors"
 	firebaseclient "go-tutorial-2020/pkg/firebaseClient"
+	"go-tutorial-2020/pkg/httpclient"
 
 	userEntity "go-tutorial-2020/internal/entity/user"
 
@@ -17,9 +19,10 @@ import (
 type (
 	// Data ...
 	Data struct {
-		db   *sqlx.DB
-		fb   *firestore.Client
-		stmt map[string]*sqlx.Stmt
+		db     *sqlx.DB
+		fb     *firestore.Client
+		stmt   map[string]*sqlx.Stmt
+		client *httpclient.Client
 	}
 
 	// statement ...
@@ -61,10 +64,11 @@ var (
 )
 
 // New ...
-func New(db *sqlx.DB, fb *firebaseclient.Client) Data {
+func New(db *sqlx.DB, fb *firebaseclient.Client, client *httpclient.Client) Data {
 	d := Data{
-		db: db,
-		fb: fb.Client,
+		db:     db,
+		fb:     fb.Client,
+		client: client,
 	}
 
 	d.initStmt()
@@ -131,8 +135,6 @@ func (d Data) GetAllUsers(ctx context.Context) ([]userEntity.User, error) {
 	}
 	// Return users array
 	return users, err
-
-	
 
 }
 
@@ -211,4 +213,18 @@ func (d Data) InsertNipUp(ctx context.Context) (int, error) {
 	var nipMax int
 	err := d.stmt[insertNipUp].QueryRowxContext(ctx).Scan(&nipMax)
 	return nipMax, err
+}
+
+//GetAllUsersAPI . . . . . . . .
+func (d Data) GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEntity.User, error) {
+	var resp userEntity.DataResp
+	var endpoint = "http://10.0.111.143:8888/users?GET=SQL"
+
+	_, err := d.client.GetJSON(ctx, endpoint, header, &resp)
+
+	if err != nil {
+		return []userEntity.User{}, errors.Wrap(err, "[DATA][GetUser]")
+	}
+
+	return resp.Data, err
 }
