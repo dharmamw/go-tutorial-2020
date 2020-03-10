@@ -31,7 +31,7 @@ type (
 
 const (
 	getAllUsers  = "GetAllUsers"
-	qGetAllUsers = "SELECT * FROM user_test"
+	qGetAllUsers = "SELECT * FROM user_test order by nama_lengkap"
 
 	insertUsers  = "InsertUsers"
 	qinsertUsers = "INSERT INTO user_test VALUES (NULL, ?, ?, ?, ?, ?)"
@@ -94,7 +94,7 @@ func (d Data) GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error
 		err          error
 	)
 	// test := d.fb.Collection("user_test")
-	iter := d.fb.Collection("user_test").Where("ID", "==", 2).Documents(ctx)
+	iter := d.fb.Collection("user_test").Documents(ctx)
 	for {
 		var user userEntity.User
 		doc, err := iter.Next()
@@ -131,6 +131,8 @@ func (d Data) GetAllUsers(ctx context.Context) ([]userEntity.User, error) {
 	}
 	// Return users array
 	return users, err
+
+	
 
 }
 
