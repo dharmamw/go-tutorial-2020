@@ -14,12 +14,14 @@ type UserData interface {
 	GetAllUsers(ctx context.Context) ([]userEntity.User, error)
 	GetUserByNIP(ctx context.Context, NIP string) (userEntity.User, error)
 	UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
-	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
+	DeleteUserByNIP(ctx context.Context, NIP string) error
 	InsertNipUp(ctx context.Context) (int, error)
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
 	UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User)  error
+	DeleteByNipFirebase(ctx context.Context, nip string) error
+	//DeleteAllFirebase(ctx context.Context) error
 }
 
 // Service ...
@@ -87,15 +89,15 @@ func (s Service) UpdateUserByNIP(ctx context.Context, NIP string, user userEntit
 }
 
 // DeleteUserByNIP ...
-func (s Service) DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error) {
+func (s Service) DeleteUserByNIP(ctx context.Context, NIP string) error {
 	// Panggil method GetAllUsers di data layer user
-	user, err := s.userData.DeleteUserByNIP(ctx, NIP, user)
+	err := s.userData.DeleteUserByNIP(ctx, NIP)
 	// Error handling
 	if err != nil {
-		return user, errors.Wrap(err, "[SERVICE][GetAllUsers]")
+		return errors.Wrap(err, "[SERVICE][GetAllUsers]")
 	}
 	// Return users array
-	return user, err
+	return err
 }
 
 // GetUserFromFireBase ...
@@ -133,3 +135,13 @@ func (s Service) UpdateByNipFirebase(ctx context.Context, nip string, user userE
 	err := s.userData.UpdateByNipFirebase(ctx,nip,user)
 	return err
 }
+// DeleteByNipFirebase ...
+func(s Service) DeleteByNipFirebase(ctx context.Context, nip string) error{
+	err := s.userData.DeleteByNipFirebase(ctx,nip)
+	return err
+}
+// DeleteAllFirebase ...
+// func(s Service) DeleteAllFirebase(ctx context.Context) error{
+// 	err := s.userData.DeleteAllFirebase(ctx)
+// 	return err
+// }

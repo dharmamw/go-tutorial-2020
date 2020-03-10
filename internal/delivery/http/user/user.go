@@ -19,12 +19,14 @@ type IUserSvc interface {
 	GetAllUsers(ctx context.Context) ([]userEntity.User, error)
 	GetUserByNIP(ctx context.Context, NIP string) (userEntity.User, error)
 	UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
-	DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error)
+	DeleteUserByNIP(ctx context.Context, NIP string) error
 	GetUserFromFireBase(ctx context.Context) ([]userEntity.User, error)
 	InsertUsersToFirebase(ctx context.Context, user userEntity.User) error
 	InsertMany(ctx context.Context, userList []userEntity.User) error
 	PublishUser(user userEntity.User) error
 	UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User) error
+	DeleteByNipFirebase(ctx context.Context, nip string) error
+	//DeleteAllFirebase(ctx context.Context) error
 }
 
 type (
@@ -106,13 +108,19 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 			//result, err = h.userSvc.UpdateUserByNIP(context.Background(), r.FormValue("NIP"), user)
 		}
 	case http.MethodDelete:
-
-		json.Unmarshal(body, &user)
-		_, deleteOK := r.URL.Query()["NIP"]
-		if deleteOK {
-			result, err = h.userSvc.DeleteUserByNIP(context.Background(), r.FormValue("NIP"), user)
+		// usersDelete?Delete=&NIP=
+		var _type string
+		if _, deleteOK := r.URL.Query()["Delete"] ; deleteOK {
+		_type = r.FormValue("Delete")
 		}
-
+		switch _type{
+		case "sql":
+			err = h.userSvc.DeleteUserByNIP(context.Background(), r.FormValue("NIP"))
+		case "firebase":
+			err = h.userSvc.DeleteByNipFirebase(context.Background(), r.FormValue("NIP"))	
+		// case "firebaseall":
+		// 	err = h.userSvc.DeleteAllFirebase(context.Background())		
+		}	
 	default:
 		err = errors.New("400")
 	}

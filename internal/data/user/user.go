@@ -195,12 +195,12 @@ func (d Data) UpdateUserByNIP(ctx context.Context, NIP string, user userEntity.U
 }
 
 // DeleteUserByNIP ...
-func (d Data) DeleteUserByNIP(ctx context.Context, NIP string, user userEntity.User) (userEntity.User, error) {
+func (d Data) DeleteUserByNIP(ctx context.Context, NIP string) error {
 	_, err := d.stmt[deleteUserByNIP].ExecContext(ctx,
 
 		NIP)
 
-	return user, err
+	return err
 
 }
 
@@ -221,3 +221,25 @@ func (d Data) UpdateByNipFirebase(ctx context.Context, nip string, user userEnti
 	_, err = d.fb.Collection("user_test").Doc(nip).Set(ctx, user)
 	return err
 }
+
+// DeleteByNipFirebase ...
+func(d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
+	iter, err := d.fb.Collection("user_test").Doc(nip).Get(ctx)
+	userValidate := iter.Data()
+	if userValidate == nil {
+		return errors.Wrap(err, "Data Not Exist")
+	}
+	_, err = d.fb.Collection("user_test").Doc(nip).Delete(ctx)
+	return err
+
+}
+// DeleteAllFirebase ...
+// func(d Data) DeleteAllFirebase(ctx context.Context) error {
+// 	err := d.fb.Collection("user_test").Get(ctx)
+// 	userValidate := iter.Data()
+// 	if userValidate == nil {
+// 		return errors.Wrap(err, "Data Not Exist")
+// 	}
+// 	_, err = d.fb.Collection("user_test").Delete(ctx)
+// 	return err
+// }
