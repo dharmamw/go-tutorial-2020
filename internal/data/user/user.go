@@ -231,7 +231,7 @@ func(d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
 	}
 	_, err = d.fb.Collection("user_test").Doc(nip).Delete(ctx)
 	return err
-
+	//test
 }
 // DeleteAllFirebase ...
 // func(d Data) DeleteAllFirebase(ctx context.Context) error {
