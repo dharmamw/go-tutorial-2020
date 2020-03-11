@@ -218,7 +218,7 @@ func (d Data) InsertNipUp(ctx context.Context) (int, error) {
 //GetAllUsersAPI . . . . . . . .
 func (d Data) GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEntity.User, error) {
 	var resp userEntity.DataResp
-	var endpoint = "http://10.0.111.143:8888/users?GET=SQL"
+	var endpoint = "http://10.0.111.82:8888/users?GET=SQL"
 
 	_, err := d.client.GetJSON(ctx, endpoint, header, &resp)
 
@@ -228,3 +228,4 @@ func (d Data) GetAllUsersAPI(ctx context.Context, header http.Header) ([]userEnt
 
 	return resp.Data, err
 }
+//berubah

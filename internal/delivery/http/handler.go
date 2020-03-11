@@ -12,3 +12,5 @@ func (s *Server) Handler() *mux.Router {
 
 	return r
 }
+
+
