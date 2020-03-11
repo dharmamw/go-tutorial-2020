@@ -115,4 +115,5 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	resp.Metadata = metadata
 	// Logging
 	log.Printf("[INFO] %s %s\n", r.Method, r.URL)
+	//asdadasd
 }
