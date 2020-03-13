@@ -6,6 +6,7 @@ import (
 
 	"go-tutorial-2020/internal/config"
 	firebaseclient "go-tutorial-2020/pkg/firebaseClient"
+	"go-tutorial-2020/pkg/httpclient"
 	"go-tutorial-2020/pkg/kafka"
 
 	"github.com/jmoiron/sqlx"
@@ -21,13 +22,14 @@ import (
 // HTTP will load configuration, do dependency injection and then start the HTTP server
 func HTTP() error {
 	var (
-		s   server.Server        // HTTP Server Object
-		ud  userData.Data        // User domain data layer
-		us  userService.Service  // User domain service layer
-		uh  *userHandler.Handler // User domain handler
-		cfg *config.Config       // Configuration object
-		fb  *firebaseclient.Client
-		k   *kafka.Kafka         // Kafka Producer
+		s     server.Server        // HTTP Server Object
+		ud    userData.Data        // User domain data layer
+		us    userService.Service  // User domain service layer
+		uh    *userHandler.Handler // User domain handler
+		cfg   *config.Config       // Configuration object
+		fb    *firebaseclient.Client
+		k     *kafka.Kafka // Kafka Producer
+		httpc *httpclient.Client
 	)
 
 	// Get configuration
@@ -36,6 +38,8 @@ func HTTP() error {
 		log.Fatalf("[CONFIG] Failed to initialize config: %v", err)
 	}
 	cfg = config.Get()
+
+	httpc = httpclient.NewClient()
 
 	// Open MySQL DB Connection
 	db, err := sqlx.Open("mysql", cfg.Database.Master)
@@ -48,13 +52,14 @@ func HTTP() error {
 		log.Fatalf("[DB] Failed to initialize database connection: %v", err)
 	}
 
+	log.Println(cfg.Kafka.Brokers)
 	k, err = kafka.New(cfg.Kafka.Username, cfg.Kafka.Password, cfg.Kafka.Brokers)
 	if err != nil {
 		log.Fatalf("[KAFKA] Failed to initialize kafka producer: %v", err)
 	}
 
 	// User domain initialization
-	ud = userData.New(db, fb)
+	ud = userData.New(db, fb, httpc)
 	us = userService.New(ud, k)
 	uh = userHandler.New(us)
 

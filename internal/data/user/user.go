@@ -3,9 +3,11 @@ package user
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"go-tutorial-2020/pkg/errors"
 	firebaseclient "go-tutorial-2020/pkg/firebaseClient"
+	"go-tutorial-2020/pkg/httpclient"
 
 	userEntity "go-tutorial-2020/internal/entity/user"
 
@@ -17,9 +19,10 @@ import (
 type (
 	// Data ...
 	Data struct {
-		db   *sqlx.DB
-		fb   *firestore.Client
-		stmt map[string]*sqlx.Stmt
+		db    *sqlx.DB
+		fb    *firestore.Client
+		stmt  map[string]*sqlx.Stmt
+		httpc *httpclient.Client
 	}
 
 	// statement ...
@@ -61,10 +64,11 @@ var (
 )
 
 // New ...
-func New(db *sqlx.DB, fb *firebaseclient.Client) Data {
+func New(db *sqlx.DB, fb *firebaseclient.Client, httpc *httpclient.Client) Data {
 	d := Data{
-		db: db,
-		fb: fb.Client,
+		db:    db,
+		fb:    fb.Client,
+		httpc: httpc,
 	}
 
 	d.initStmt()
@@ -149,8 +153,11 @@ func (d Data) InsertUsers(ctx context.Context, user userEntity.User) error {
 }
 
 //InsertUsersToFirebase ...
-func (d Data) InsertUsersToFirebase(ctx context.Context, user userEntity.User) error {
-	_, err := d.fb.Collection("user_test").Doc(user.NIP).Set(ctx, user)
+func (d Data) InsertUsersToFirebase(ctx context.Context, user userEntity.User, nipMaxi int) error {
+	_, err := d.fb.Collection("penampungNIP").Doc("nipMax").Update(ctx, []firestore.Update{{
+		Path: "nipMaxCount", Value: nipMaxi,
+	}})
+	_, err = d.fb.Collection("user_test").Doc(user.NIP).Set(ctx, user)
 
 	return err
 }
@@ -213,7 +220,7 @@ func (d Data) InsertNipUp(ctx context.Context) (int, error) {
 
 //UpdateByNipFirebase ...
 func (d Data) UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User) error {
-	iter,err := d.fb.Collection("user_test").Doc(nip).Get(ctx)
+	iter, err := d.fb.Collection("user_test").Doc(nip).Get(ctx)
 	userValidate := iter.Data()
 	if userValidate == nil {
 		return errors.Wrap(err, "Data Not Exist")
@@ -223,7 +230,7 @@ func (d Data) UpdateByNipFirebase(ctx context.Context, nip string, user userEnti
 }
 
 // DeleteByNipFirebase ...
-func(d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
+func (d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
 	iter, err := d.fb.Collection("user_test").Doc(nip).Get(ctx)
 	userValidate := iter.Data()
 	if userValidate == nil {
@@ -231,8 +238,9 @@ func(d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
 	}
 	_, err = d.fb.Collection("user_test").Doc(nip).Delete(ctx)
 	return err
-	
+
 }
+
 // DeleteAllFirebase ...
 // func(d Data) DeleteAllFirebase(ctx context.Context) error {
 // 	err := d.fb.Collection("user_test").Get(ctx)
@@ -243,3 +251,35 @@ func(d Data) DeleteByNipFirebase(ctx context.Context, nip string) error {
 // 	_, err = d.fb.Collection("user_test").Delete(ctx)
 // 	return err
 // }
+
+// NipIncrement ...
+func (d Data) NipIncrement(ctx context.Context) (int, error) {
+
+	doc, err := d.fb.Collection("penampungNIP").Doc("nipMax").Get(ctx)
+	max, err := doc.DataAt("nipMaxCount")
+	nipMaxi := int(max.(int64))
+	log.Println(nipMaxi)
+	return nipMaxi, err
+}
+
+// GetUserClient ...
+func (d Data) GetUserClient(ctx context.Context, headers http.Header) ([]userEntity.User, error) {
+	var resp userEntity.DataResp
+	var endpoint = "http://10.0.111.43:8888/" + "/users?firebasedb"
+
+	_, err := d.httpc.GetJSON(ctx, endpoint, headers, &resp)
+	if err != nil {
+		return []userEntity.User{}, errors.Wrap(err, "[DATA]{GetUserClient]")
+	}
+	return resp.Data, err
+}
+
+// InsertUserClient ...
+func (d Data) InsertUserClient(ctx context.Context, headers http.Header, user userEntity.User) error {
+	var resp userEntity.DataResp
+	var endpoint = "http://10.0.111.43:8888/" + "/usersInsert?Insert=firebase"
+
+	_, err := d.httpc.PostJSON(ctx, endpoint, headers, user, &resp)
+
+	return err
+}

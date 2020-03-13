@@ -27,6 +27,7 @@ type IUserSvc interface {
 	UpdateByNipFirebase(ctx context.Context, nip string, user userEntity.User) error
 	DeleteByNipFirebase(ctx context.Context, nip string) error
 	//DeleteAllFirebase(ctx context.Context) error
+	GetUserClient(ctx context.Context, headers http.Header) ([]userEntity.User, error)
 }
 
 type (
@@ -63,17 +64,19 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if request method is GET
 	case http.MethodGet:
 		// Cek query di URL
-		_, nipOK := r.URL.Query()["NIP"]
-		if nipOK {
-			// Ambil user by NIP
+		var _type string
+		if _, getOK := r.URL.Query()["get"]; getOK {
+			_type = r.FormValue("get")
+		}
+		switch _type {
+		case "sqlall":
+			result, err = h.userSvc.GetAllUsers(context.Background())
+		case "firebaseall":
+			result, err = h.userSvc.GetUserFromFireBase(context.Background())
+		case "sqlNIP":
 			result, err = h.userSvc.GetUserByNIP(context.Background(), r.FormValue("NIP"))
-		} else {
-			// Ambil semua data user
-			if _, fireOK := r.URL.Query()["firebasedb"]; fireOK {
-				result, err = h.userSvc.GetUserFromFireBase(context.Background())
-			} else {
-				result, err = h.userSvc.GetAllUsers(context.Background())
-			}
+		case "userClient":
+			result, err = h.userSvc.GetUserClient(context.Background(), r.Header)
 		}
 
 	case http.MethodPost:
@@ -82,8 +85,8 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 			_type    string
 			userList []userEntity.User
 		)
-		if _, fireOk := r.URL.Query()["Insert"]; fireOk {
-			_type = r.FormValue("Insert")
+		if _, postOK := r.URL.Query()["insert"]; postOK {
+			_type = r.FormValue("insert")
 		}
 		switch _type {
 		case "firebase":
@@ -102,25 +105,33 @@ func (h *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPut:
 		json.Unmarshal(body, &user)
-		_, updateOK := r.URL.Query()["NIP"]
-		if updateOK {
-			err = h.userSvc.UpdateByNipFirebase(context.Background(),  r.FormValue("NIP"), user)
-			//result, err = h.userSvc.UpdateUserByNIP(context.Background(), r.FormValue("NIP"), user)
+
+		var _type string
+
+		if _, putOK := r.URL.Query()["update"]; putOK {
+			_type = r.FormValue("update")
 		}
+		switch _type {
+		case "firebase":
+			err = h.userSvc.UpdateByNipFirebase(context.Background(), r.FormValue("NIP"), user)
+		}
+
+		//result, err = h.userSvc.UpdateUserByNIP(context.Background(), r.FormValue("NIP"), user)
+
 	case http.MethodDelete:
 		// usersDelete?Delete=&NIP=
 		var _type string
-		if _, deleteOK := r.URL.Query()["Delete"] ; deleteOK {
-		_type = r.FormValue("Delete")
+		if _, deleteOK := r.URL.Query()["Delete"]; deleteOK {
+			_type = r.FormValue("Delete")
 		}
-		switch _type{
+		switch _type {
 		case "sql":
 			err = h.userSvc.DeleteUserByNIP(context.Background(), r.FormValue("NIP"))
 		case "firebase":
-			err = h.userSvc.DeleteByNipFirebase(context.Background(), r.FormValue("NIP"))	
-		// case "firebaseall":
-		// 	err = h.userSvc.DeleteAllFirebase(context.Background())		
-		}	
+			err = h.userSvc.DeleteByNipFirebase(context.Background(), r.FormValue("NIP"))
+			// case "firebaseall":
+			// 	err = h.userSvc.DeleteAllFirebase(context.Background())
+		}
 	default:
 		err = errors.New("400")
 	}
