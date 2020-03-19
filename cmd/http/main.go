@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"go-tutorial-2020/internal/boot"
+	"tugas-arif/internal/boot"
 
 	_ "github.com/go-sql-driver/mysql"
 )

@@ -51,14 +51,14 @@ func WithConfigFile(file string) Option {
 
 func getDefaultConfigFile() string {
 	var (
-		repoPath   = filepath.Join(os.Getenv("GOPATH"), "src/go-tutorial-2020")
-		configPath = filepath.Join(repoPath, "files/etc/go-tutorial-2020/go-tutorial-2020.development.yaml")
+		repoPath   = filepath.Join(os.Getenv("GOPATH"), "src/tugas-arif")
+		configPath = filepath.Join(repoPath, "files/etc/tugas-arif/tugas-arif.development.yaml")
 		env        = os.Getenv("ENV")
 	)
 
 	if env != "" {
 		if env == envStaging {
-			configPath = "./go-tutorial-2020.staging.yaml"
+			configPath = "./tugas-arif.staging.yaml"
 		}
 	}
 	return configPath

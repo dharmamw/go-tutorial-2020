@@ -6,7 +6,7 @@ type (
 		Server   ServerConfig   `yaml:"server"`
 		Database DatabaseConfig `yaml:"database"`
 		Firebase FirebaseConfig `yaml:"firebase"`
-		Kafka    KafkaConfig    `yaml:"kafka"`
+		// API      APIConfig      `yaml:"api"`
 	}
 
 	// ServerConfig ...
@@ -22,12 +22,10 @@ type (
 	// FirebaseConfig ...
 	FirebaseConfig struct {
 		ProjectID string `yaml:"ProjectID"`
+	
 	}
 
-	KafkaConfig struct {
-		Username      string   `yaml:"username"`
-		Password      string   `yaml:"password"`
-		Brokers       []string `yaml:"brokers"`
-		Subscriptions []string `yaml:"subscriptions"`
-	}
+	// APIConfig ...
+	// APIConfig struct {
+	// }
 )

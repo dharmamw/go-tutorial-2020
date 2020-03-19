@@ -1,0 +1,11 @@
+server:
+  port: ":8888"
+
+database:
+ master: "PharmanetBois:d3v3l0p8015@tcp(13.250.197.171:3306)/test?parseTime=true"
+
+firebase:
+  ProjectID: "testarif-f4faa"
+
+
+

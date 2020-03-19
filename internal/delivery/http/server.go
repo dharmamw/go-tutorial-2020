@@ -2,20 +2,21 @@ package http
 
 import (
 	"net/http"
+	"tugas-arif/pkg/grace"
 
 	"github.com/rs/cors"
-	"github.com/vilbert/go-skeleton/pkg/grace"
 )
 
-// UserHandler ...
-type UserHandler interface {
-	UserHandler(w http.ResponseWriter, r *http.Request)
+// ArifHandler ...
+type ArifHandler interface {
+	// Masukkan fungsi handler di sini
+	ArifHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // Server ...
 type Server struct {
 	server *http.Server
-	User   UserHandler
+	Arif   ArifHandler
 }
 
 // Serve is serving HTTP gracefully on port x ...
